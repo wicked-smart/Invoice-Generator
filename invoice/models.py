@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+import uuid
 
 # Create your models here.
 class User(AbstractUser):
@@ -13,3 +14,20 @@ class Item(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+
+class BoughtItem(models.Model):
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="sold")
+    quantity = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.item.name}"
+
+class Invoice(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    items = models.ManyToManyField(BoughtItem)
+   # customer
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.id}"
