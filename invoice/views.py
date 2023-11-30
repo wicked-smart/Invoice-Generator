@@ -44,4 +44,31 @@ def purchase_items(request):
 
 @api_view(['PUT'])
 def update_purchase_items(request, invoice_id):
-    pass
+    
+    if request.method == 'PUT':
+
+        try:
+            invoice = Invoice.objects.get(id=invoice_id)
+        except Invoice.DoesNotExist:
+             return Response({"message": f"Invoice with id {invoice_id} does not exists!"})
+
+        if invoice.pdf_generated == True:
+            return Response({"message": "Purchase cannot be updated now as Invoice PDF has been generated!"}, status=status.HTTP_400_BAD_REQUEST)
+        data = request.data
+
+        serializer = BoughtItemSerializer(data=data, many=True)
+
+        if serializer.is_valid():
+            invoice = InvoiceItemSerializer(invoice, data=data, partial=True)
+
+            if invoice.is_valid():
+                invoice.save()
+                return Response(invoice.data, status=status.HTTP_200_OK)
+            else:
+                return Response(invoice.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+    else:
+        return Response({"message": "not working"})
